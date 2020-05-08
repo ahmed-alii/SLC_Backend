@@ -1,4 +1,4 @@
-align
+align~=0.0.11
 absl-py==0.1.10
 astroid==1.6.1
 bleach==1.5.0
@@ -20,3 +20,6 @@ tensorflow==1.5.0
 tensorflow-tensorboard==1.5.1
 Werkzeug==0.14.1
 wrapt==1.10.11
+
+PyMySQL~=0.9.3
+Flask~=1.1.2

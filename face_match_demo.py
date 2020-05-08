@@ -13,36 +13,8 @@ import numpy as np
 import facenet
 import cv2
 
-""" Tensorflow implementation of the face detection / alignment algorithm found at
-https://github.com/kpzhang93/MTCNN_face_detection_alignment
-"""
-# MIT License
-#
-# Copyright (c) 2016 David Sandberg
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-
 
 def layer(op):
-    '''Decorator for composable network layers.'''
-
     def layer_decorated(self, *args, **kwargs):
         # Automatically set a name if not provided.
         name = kwargs.setdefault('name', self.get_unique_name(op.__name__))
@@ -63,6 +35,9 @@ def layer(op):
         return self
 
     return layer_decorated
+
+
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 
 
 class Network(object):
@@ -117,13 +92,13 @@ class Network(object):
         return self
 
     def get_output(self):
-        '''Returns the current network output.'''
+        """Returns the current network output."""
         return self.terminals[-1]
 
     def get_unique_name(self, prefix):
-        '''Returns an index-suffixed unique name for the given prefix.
+        """Returns an index-suffixed unique name for the given prefix.
         This is used for auto-generating layer names based on the type-prefix.
-        '''
+        """
         ident = sum(t.startswith(prefix) for t, _ in self.layers.items()) + 1
         return '%s_%d' % (prefix, ident)
 
@@ -808,8 +783,6 @@ factor = 0.709
 margin = 44
 input_image_size = 160
 
-
-
 sess = tf.Session()
 
 # read pnet, rnet, onet models from align directory and files are det1.npy, det2.npy, det3.npy
@@ -817,7 +790,7 @@ pnet, rnet, onet = create_mtcnn(sess, "align")
 
 # read 20170512-110547 model file downloaded from https://drive.google.com/file/d/0B5MzpY9kBtDVZ2RpVDYwWmxoSUk
 facenet.load_model("20170512-110547/20170512-110547.pb")
-#facenet.load_model("20180408-102900/20180408-102900.pb")
+# facenet.load_model("20180408-102900/20180408-102900.pb")
 # Get input and output tensors
 
 images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
@@ -825,10 +798,11 @@ embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
 phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
 embedding_size = embeddings.get_shape()[1]
 
+
 def getFace(img):
     faces = []
     img_size = np.asarray(img.shape)[0:2]
-    bounding_boxes, _ =  detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+    bounding_boxes, _ = detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
     if not len(bounding_boxes) == 0:
         for face in bounding_boxes:
             if face[4] > 0.50:
@@ -839,18 +813,22 @@ def getFace(img):
                 bb[2] = np.minimum(det[2] + margin / 2, img_size[1])
                 bb[3] = np.minimum(det[3] + margin / 2, img_size[0])
                 cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
-                resized = cv2.resize(cropped, (input_image_size,input_image_size),interpolation=cv2.INTER_CUBIC)
+                resized = cv2.resize(cropped, (input_image_size, input_image_size), interpolation=cv2.INTER_CUBIC)
                 prewhitened = facenet.prewhiten(resized)
-                faces.append({'face':resized,'rect':[bb[0],bb[1],bb[2],bb[3]],'embedding':getEmbedding(prewhitened)})
+                faces.append(
+                    {'face': resized, 'rect': [bb[0], bb[1], bb[2], bb[3]], 'embedding': getEmbedding(prewhitened)})
     print(len(faces))
     return faces
+
+
 def getEmbedding(resized):
-    reshaped = resized.reshape(-1,input_image_size,input_image_size,3)
+    reshaped = resized.reshape(-1, input_image_size, input_image_size, 3)
     feed_dict = {images_placeholder: reshaped, phase_train_placeholder: False}
     embedding = sess.run(embeddings, feed_dict=feed_dict)
     return embedding
 
-def compare2face(img1,img2):
+
+def compare2face(img1, img2):
     face1 = getFace(img1)
     face2 = getFace(img2)
     if face1 and face2:
@@ -858,9 +836,6 @@ def compare2face(img1,img2):
         dist = np.sqrt(np.sum(np.square(np.subtract(face1[0]['embedding'], face2[0]['embedding']))))
         return dist
     return -1
-
-
-
 
 
 #
@@ -881,7 +856,4 @@ getFace(img1)
 # else:
 #      print("Matching Result:  not same person")
 
-#print("Result = " + ("same person" if distance <= threshold else if distance==-1 "not same person"))
-
-
-
+# print("Result = " + ("same person" if distance <= threshold else if distance==-1 "not same person"))
