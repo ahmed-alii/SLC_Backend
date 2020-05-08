@@ -18,7 +18,7 @@ six==1.11.0
 sklearn==0.0
 tensorflow==1.5.0
 tensorflow-tensorboard==1.5.1
-Werkzeug==0.14.1
+Werkzeug==0.15.3
 wrapt==1.10.11
 
 PyMySQL~=0.9.3
